@@ -1,0 +1,27 @@
+#!/bin/bash
+
+PROVIDER=icloud.com
+SERVER=https://$(dig +short _carddavs._tcp.$PROVIDER srv | awk '{print $4":"$3}')
+SERVER=${SERVER%.*} # strip trailing dot from DNS
+echo "Using server $SERVER"
+PRINCIPAL=$(curl -s -n $SERVER --data '<?xml version="1.0" encoding="utf-8" ?><D:propfind xmlns:D="DAV:"><D:prop><D:current-user-principal/><D:principal-URL/></D:prop></D:propfind>' -X PROPFIND | perl -n -e '/<current-user-principal><href>(.*)<\/href>/ && print $1')
+PRINCIPAL=${PRINCIPAL%/principal*}
+
+rm -f *.vcf
+curl -n $SERVER$PRINCIPAL/0/ --data-binary '<?xml version="1.0" encoding="utf-8" ?><D:propfind xmlns:D="DAV:"><D:allprop/></D:propfind>' -X PROPFIND --header 'Depth: infinity' | perl -n -e '/href>(\/.*vcf)/ && print "'$SERVER'".$1."\n"' | xargs -- curl -n --remote-name-all
+
+rm aliases
+for card in *.vcf; do
+  
+  nickname=$(awk -F: -e '{sub(/\r$/,"")};/NICKNAME/{ print $2}' $card)
+  email=$(awk -F: -e '{sub(/\r$/,"")};/EMAIL/{ print $2}' $card | head -1)
+  fn=$(awk -F: -e '{sub(/\r$/,"")};/FN/{ print $2}' $card)
+  if [[ "$nickname" == "" ]]; then
+    nickname=${email%@*}
+  fi
+  if [[ "$email" == "" ]]; then
+    continue
+  fi
+  echo "alias $nickname $fn <$email> # $card" >> aliases
+done
+
