@@ -6,8 +6,8 @@ file.
 
 To use:
 
-echo 'machine contacts.icloud.com login sjobs@me.com password APPLE' >> ~/.netrc
-./make-aliases
+    echo 'machine contacts.icloud.com login sjobs@me.com password APPLE' >> ~/.netrc
+    ./make-aliases
 
 If you have a NICKNAME in your vCards, this will become the alias. Else, the
 local part of the email address is used.
