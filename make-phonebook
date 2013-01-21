@@ -1,0 +1,18 @@
+#!/bin/bash
+
+rm phonebook
+for card in *.vcf; do
+  
+  phones=$(awk -F: -e '{sub(/\r$/,"")};/TEL/{ print $2 }' $card | sed -e 's/ //g' )
+  fn=$(awk -F: -e '{sub(/\r$/,"")};/FN/{ print $2}' $card)
+  if [ -z "$phones" ]; then
+    continue
+  fi
+  if [ -z "$fn" ]; then
+    echo "number no name: $card $phones $fn"
+  fi
+  for phone in $phones; do
+    echo "\"$fn\",\"$phone\"" >> phonebook
+  done
+done
+
