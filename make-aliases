@@ -8,7 +8,7 @@ PRINCIPAL=$(curl -s -n $SERVER --data '<?xml version="1.0" encoding="utf-8" ?><D
 PRINCIPAL=${PRINCIPAL%/principal*}
 
 rm -f *.vcf
-curl -n $SERVER$PRINCIPAL/0/ --data-binary '<?xml version="1.0" encoding="utf-8" ?><D:propfind xmlns:D="DAV:"><D:allprop/></D:propfind>' -X PROPFIND --header 'Depth: infinity' | perl -n -e '/href>(\/.*vcf)/ && print "'$SERVER'".$1."\n"' | xargs -- curl -n --remote-name-all
+curl -s -n $SERVER$PRINCIPAL/0/ --data-binary '<?xml version="1.0" encoding="utf-8" ?><D:propfind xmlns:D="DAV:"><D:allprop/></D:propfind>' -X PROPFIND --header 'Depth: infinity' | perl -n -e '/href>(\/.*vcf)/ && print "'$SERVER'".$1."\n"' | xargs -- curl -s -n --remote-name-all
 
 rm aliases
 for card in *.vcf; do
